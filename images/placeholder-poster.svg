@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="1000" viewBox="0 0 750 1000">
+  <rect width="750" height="1000" fill="#0e3b2e"/>
+  <rect x="30" y="30" width="690" height="940" fill="none" stroke="#c9963e" stroke-width="3"/>
+  <g fill="none" stroke="#e4c27e" stroke-opacity="0.3">
+    <g transform="translate(375 430)">
+      <rect x="-100" y="-100" width="200" height="200"/>
+      <rect x="-100" y="-100" width="200" height="200" transform="rotate(45)"/>
+    </g>
+  </g>
+  <text x="375" y="650" text-anchor="middle" font-family="Georgia, serif" font-size="40" fill="#e4c27e">Event poster</text>
+  <text x="375" y="695" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#dcebe2" opacity="0.7">Replace this placeholder image</text>
+</svg>

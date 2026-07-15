@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000">
+  <rect width="800" height="1000" fill="#14573f"/>
+  <g fill="none" stroke="#e4c27e" stroke-opacity="0.25">
+    <g transform="translate(400 460)">
+      <rect x="-110" y="-110" width="220" height="220"/>
+      <rect x="-110" y="-110" width="220" height="220" transform="rotate(45)"/>
+    </g>
+  </g>
+  <text x="400" y="700" text-anchor="middle" font-family="Georgia, serif" font-size="38" fill="#e4c27e">Photo coming soon</text>
+  <text x="400" y="745" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#dcebe2" opacity="0.7">Replace this placeholder image</text>
+</svg>
