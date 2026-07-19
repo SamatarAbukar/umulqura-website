@@ -7,7 +7,7 @@
   <meta name="description" content="Upcoming events, programs and community gatherings at Umul Qura Learning Centre in Kitchener, Ontario.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Nunito+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -30,13 +30,7 @@
   <header class="site-header">
     <div class="container">
       <a class="brand" href="index.html">
-        <svg class="brand__mark" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
-  <g fill="none" stroke="#c9963e" stroke-width="2.4">
-    <rect x="12" y="12" width="24" height="24"/>
-    <rect x="12" y="12" width="24" height="24" transform="rotate(45 24 24)"/>
-  </g>
-  <circle cx="24" cy="24" r="4.5" fill="#14573f"/>
-</svg>
+        <img class="brand__mark" src="images/logo.png" alt="Umul Qura Learning Centre logo">
         <span class="brand__name">Umul Qura<small>Learning Centre</small></span>
       </a>
       <input class="nav-toggle-input" type="checkbox" id="nav-toggle" aria-label="Open menu">
@@ -63,27 +57,27 @@
       </div>
     </section>
 
-    <section class="section">
+    <section class="section" style="padding-top: clamp(1.75rem, 4vw, 3.25rem)">
       <div class="container">
-        <div class="grid grid--4">
-          <!-- REPLACE: swap each placeholder with an event poster image.
-               Duplicate or delete <figure> blocks as needed. -->
-          <figure class="card event-card" style="margin:0">
-            <img src="images/placeholder-poster.svg" alt="Upcoming event poster" width="750" height="1000">
-            <figcaption>Event details coming soon</figcaption>
-          </figure>
-          <figure class="card event-card" style="margin:0">
-            <img src="images/placeholder-poster.svg" alt="Upcoming event poster" width="750" height="1000">
-            <figcaption>Event details coming soon</figcaption>
-          </figure>
-          <figure class="card event-card" style="margin:0">
-            <img src="images/placeholder-poster.svg" alt="Upcoming event poster" width="750" height="1000">
-            <figcaption>Event details coming soon</figcaption>
-          </figure>
-          <figure class="card event-card" style="margin:0">
-            <img src="images/placeholder-poster.svg" alt="Upcoming event poster" width="750" height="1000">
-            <figcaption>Event details coming soon</figcaption>
-          </figure>
+        <!-- Duplicate or delete <figure> slides as needed to add or remove events. -->
+        <div class="carousel" id="events-carousel" tabindex="0" aria-roledescription="carousel" aria-label="Event posters">
+          <button class="carousel__btn carousel__btn--prev" type="button" aria-label="Previous poster" aria-controls="events-carousel-track">&#8249;</button>
+          <div class="carousel__track" id="events-carousel-track">
+            <figure class="carousel__slide">
+              <img src="images/womencircle.jpeg" alt="Women's Circle event poster" width="1024" height="1536" loading="lazy">
+              <figcaption>Women's Circle</figcaption>
+            </figure>
+            <figure class="carousel__slide">
+              <img src="images/summercamp.jpeg" alt="Summer Camp event poster" width="1086" height="1448" loading="lazy">
+              <figcaption>Summer Camp</figcaption>
+            </figure>
+            <figure class="carousel__slide">
+              <img src="images/robotic.jpeg" alt="Robotics Program event poster" width="1122" height="1402" loading="lazy">
+              <figcaption>Robotics Program</figcaption>
+            </figure>
+          </div>
+          <button class="carousel__btn carousel__btn--next" type="button" aria-label="Next poster" aria-controls="events-carousel-track">&#8250;</button>
+          <div class="carousel__dots" role="tablist" aria-label="Choose event poster"></div>
         </div>
 
         <div class="note mt-2">
@@ -116,7 +110,7 @@
         <div>
           <a class="brand" href="index.html">
             <svg class="brand__mark" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
-  <g fill="none" stroke="#c9963e" stroke-width="2.4">
+  <g fill="none" stroke="#eeac35" stroke-width="2.4">
     <rect x="12" y="12" width="24" height="24"/>
     <rect x="12" y="12" width="24" height="24" transform="rotate(45 24 24)"/>
   </g>
@@ -139,7 +133,6 @@
             <li><a href="classes.html">Classes</a></li>
             <li><a href="events.html">Events</a></li>
             <li><a href="contact.html">Contact Us</a></li>
-            <li><a href="https://masjidbox.com/prayer-times/umulqura">Prayer Times</a></li>
             <li><a href="https://app.irm.io/umulquralc.com/generaldonation">Make a Donation</a></li>
           </ul>
         </div>
@@ -157,5 +150,7 @@
       <div class="site-footer__bottom">© Umul Qura Learning Centre. All rights reserved.</div>
     </div>
   </footer>
+
+  <script src="js/carousel.js"></script>
 </body>
 </html>
