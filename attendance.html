@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Teacher Attendance | Umul Qura Learning Centre</title>
+  <meta name="description" content="Staff attendance register for Umul Qura Learning Centre teachers.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar__group">
+        <span>300 Victoria St N, Kitchener, ON N2H 6R9</span>
+        <span class="topbar__hours">Mon–Fri 8:45 am – 8:00 pm · Sat–Sun 10 am – 6 pm</span>
+      </div>
+      <div class="topbar__group">
+        <a href="tel:+12263363555">Office: 226-336-3555</a>
+        <a href="https://wa.me/12262201523">WhatsApp: 226-220-1523</a>
+        <a href="mailto:info@umulquralc.com">info@umulquralc.com</a>
+      </div>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="index.html">
+        <img class="brand__mark" src="images/logo.png" alt="Umul Qura Learning Centre logo">
+        <span class="brand__name">Umul Qura<small>Learning Centre</small></span>
+      </a>
+      <input class="nav-toggle-input" type="checkbox" id="nav-toggle" aria-label="Open menu">
+      <nav class="nav" aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="about.html">About Us</a>
+        <a href="classes.html">Classes</a>
+        <a href="services.html">Services</a>
+        <a href="events.html">Events</a>
+        <a href="contact.html">Contact Us</a>
+        <a class="btn btn--gold" href="https://app.irm.io/umulquralc.com/generaldonation">Donate</a>
+      </nav>
+      <label class="nav-toggle" for="nav-toggle" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </label>
+    </div>
+  </header>
+
+  <main id="main">
+    <noscript>
+      <section class="section">
+        <div class="container att-login">
+          <div class="section-head section-head--center">
+            <h1>Teacher Attendance</h1>
+          </div>
+          <p class="note">This page needs JavaScript to load the class register. Please enable it in your browser
+            settings, or use a different browser.</p>
+        </div>
+      </section>
+    </noscript>
+
+    <!-- Both views start hidden; attendance.js reveals whichever applies. -->
+    <section class="section" id="login-view" hidden>
+      <div class="container att-login">
+        <div class="section-head section-head--center">
+          <p class="eyebrow">Staff Only</p>
+          <h1>Teacher Attendance</h1>
+          <p>Enter the shared staff password to open the attendance register.</p>
+        </div>
+
+        <div class="form-card">
+          <form id="login-form" autocomplete="off">
+            <div class="form-grid">
+              <div class="form-field form-field--full">
+                <label for="password">Staff password *</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" required>
+              </div>
+              <div class="form-field--full">
+                <button class="btn btn--green" type="submit" id="login-submit">Sign In</button>
+              </div>
+            </div>
+          </form>
+          <p class="att-status att-status--error" id="login-error" role="alert" hidden></p>
+        </div>
+
+        <p class="note mt-2">Lost the password? Ask the office. Please don't share this page outside the teaching
+          staff.</p>
+      </div>
+    </section>
+
+    <!-- The register itself. -->
+    <section class="section" id="sheet-view" hidden>
+      <div class="container">
+        <div class="att-head">
+          <div>
+            <p class="eyebrow">Staff Only</p>
+            <h1>Teacher Attendance</h1>
+          </div>
+          <button class="btn btn--outline" type="button" id="logout">Log Out</button>
+        </div>
+
+        <div class="form-card att-controls">
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="teacher">Teacher *</label>
+              <select id="teacher" required>
+                <option value="">Select your name…</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label for="date">Date *</label>
+              <input id="date" type="date" required>
+            </div>
+
+            <div class="form-field form-field--full">
+              <span class="att-legend" id="class-type-label">Class type *</span>
+              <div class="att-radios" role="radiogroup" aria-labelledby="class-type-label">
+                <label class="att-radio">
+                  <input type="radio" name="class_type" value="weekend" checked>
+                  <span>Weekend Class</span>
+                </label>
+                <label class="att-radio">
+                  <input type="radio" name="class_type" value="evening_hifz">
+                  <span>Evening Hifz</span>
+                </label>
+                <label class="att-radio">
+                  <input type="radio" name="class_type" value="fulltime_hifz">
+                  <span>Full-Time Hifz</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Weekend class only. -->
+            <div class="form-field" id="session-field">
+              <label for="session">Session *</label>
+              <select id="session">
+                <option value="morning">Morning Class</option>
+                <option value="afternoon">Afternoon Class</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="att-sheet mt-2">
+          <div class="att-sheet__head">
+            <h2>Students</h2>
+            <button class="btn btn--outline" type="button" id="add-student">Add Student</button>
+          </div>
+
+          <!-- Revealed by Add Student. -->
+          <form class="att-add" id="add-student-form" hidden autocomplete="off">
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="new-first">First name *</label>
+                <input id="new-first" type="text" autocomplete="off">
+              </div>
+              <div class="form-field">
+                <label for="new-last">Last name *</label>
+                <input id="new-last" type="text" autocomplete="off">
+              </div>
+              <div class="form-field">
+                <label for="new-dob">Date of birth <span class="att-optional">(optional)</span></label>
+                <input id="new-dob" type="date">
+              </div>
+              <div class="form-field att-add__actions">
+                <button class="btn btn--green" type="submit" id="add-student-save">Add to Class</button>
+                <button class="btn btn--outline" type="button" id="add-student-cancel">Cancel</button>
+              </div>
+            </div>
+          </form>
+
+          <p class="att-empty" id="roster-empty" hidden>No students on this class list yet. Use
+            <strong>Add Student</strong> to build the register.</p>
+
+          <div class="att-table-wrap">
+            <table class="att-table" id="roster-table" hidden>
+              <thead>
+                <tr>
+                  <th scope="col">Student</th>
+                  <th scope="col">Date of birth</th>
+                  <th scope="col">Attendance</th>
+                  <th scope="col">Lesson</th>
+                  <th scope="col">Review</th>
+                  <th scope="col"><span class="att-sr">Remove student</span></th>
+                </tr>
+              </thead>
+              <tbody id="roster-body"></tbody>
+            </table>
+          </div>
+
+          <div class="att-actions">
+            <button class="btn btn--green btn--lg" type="button" id="save">Save Attendance</button>
+            <p class="att-status" id="save-status" role="status" aria-live="polite" hidden></p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__bottom">© Umul Qura Learning Centre. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="js/attendance.js"></script>
+</body>
+
+</html>
