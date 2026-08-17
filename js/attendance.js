@@ -6,7 +6,7 @@
  * paste the deployment URL below.
  *
  * API_URL is not a secret — it is visible in the page source, and that is
- * fine. The shared password is what protects the data, and it is only ever
+ * fine. The password is what protects the data, and it is only ever
  * held in memory and sessionStorage, never written into this repository.
  */
 var API_URL = 'https://script.google.com/macros/s/AKfycbxAsYFxrL2prk_8qSHTE88MxTxbozRd6FXqHyJZWkODYYb5xVVh2Ngknppzx2Eq7R481A/exec';
