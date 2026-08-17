@@ -30,8 +30,8 @@ without losing their history.
 
 ### Tab: `Students`
 
-| student_id | first_name | last_name | dob | class_type | session | active | created_at |
-| --- | --- | --- | --- | --- | --- | --- | --- |
+| student_id | first_name | last_name | dob | class_type | session | active | created_at | teacher_id |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 Header only — teachers fill this in from the page using **Add Student**.
 
@@ -39,6 +39,10 @@ Header only — teachers fill this in from the page using **Add Student**.
 - `session` is `morning` or `afternoon` for the weekend class, and **blank** for the two Hifz classes
 - `active` is the soft-delete flag. **Delete Student** on the page sets it to `FALSE`; it never
   removes the row, and it never touches past attendance.
+- `teacher_id` ties the student to whoever picked them up on **Add Student** (matches the
+  `teacher_id` on the `Teachers` tab). The class roster only shows students whose `teacher_id`
+  matches the teacher currently selected on the page — a student with no `teacher_id` set won't
+  appear for anyone.
 
 ### Tab: `Attendance`
 
@@ -123,6 +127,14 @@ the same, so nothing on the website needs changing.
 
 ---
 
+## Migrating an existing sheet to add `teacher_id`
+
+If your `Students` tab was created before `teacher_id` existed, running `setupSheets()` again adds
+the header to column I but does **not** back-fill it for students who are already on the sheet —
+they will stop appearing on anyone's roster until you set it. Open the `Students` tab and fill in
+`teacher_id` (matching a `teacher_id` from the `Teachers` tab) for every existing active row, then
+redeploy the updated `Code.gs` (see below).
+
 ## Checking it works
 
 From a terminal:
@@ -141,6 +153,23 @@ You should get back your teacher list:
 
 A wrong password returns `{"ok":false,"error":"Incorrect password."}`.
 
+To check a date range's saved attendance for one teacher/class/session (optionally for one student):
+
+```sh
+curl -sL 'https://script.google.com/macros/s/AKfy…/exec' \
+  -H 'Content-Type: text/plain' \
+  --data '{"action":"attendanceForRange","password":"YOUR_PASSWORD","teacher":"Sheikh Nuh Aweis","class_type":"weekend","session":"morning","start_date":"2026-08-03","end_date":"2026-08-09","student_id":"S-001"}'
+```
+
+`student_id` is optional — omit it (or send `""`) to get every student in that class/session.
+
+```json
+{"ok":true,"rows":[{"date":"2026-08-09","student_id":"S-001","first_name":"...","last_name":"...","present":true,"lesson_passed":true,"review_passed":false,"saved_at":"..."}],"start_date":"2026-08-03","end_date":"2026-08-09"}
+```
+
+Note `teacher` must be the teacher's **display name** (as it appears on the `Teachers` tab), not
+their `teacher_id` — that's what the `Attendance` sheet stores in its `teacher` column.
+
 Two curl details matter here. `-L` is required because Apps Script answers with a redirect to a
 `googleusercontent.com` host that carries the actual response. And do **not** add `-X POST` — that
 forces the method onto the redirect too, which Google rejects with `HTTP 405` and an "unable to
@@ -158,10 +187,16 @@ deliberately not linked from the site navigation and is marked `noindex`, so it 
 search results.
 
 1. Enter the shared password.
-2. Choose your name, the class type, the session (weekend only) and the date.
+2. Choose your name, the class type, the session (weekend only) and the date. The class list only
+   shows students who belong to *your* name and that class/session.
 3. Mark each student Present or Absent, and tick whether they passed their lesson and review.
-4. **Add Student** to put a new student on the class roster permanently.
+4. **Add Student** to put a new student on your class roster permanently.
 5. **Save Attendance**.
+6. Use **View Past Attendance** to check what was saved for your name, class type and session.
+   Pick **Last Week**, **Last Month**, or **Custom** (choose your own start and end dates), and
+   optionally narrow it to one student. Use **Print / Save as PDF** to print the report or save it
+   as a PDF from the browser's print dialog — this works for both the whole class and a single
+   student's history.
 
 Saving the same class and date twice updates those rows rather than duplicating them, so it is
 always safe to correct a mistake and save again.

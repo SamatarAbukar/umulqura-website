@@ -650,6 +650,10 @@ p { margin: 0 0 1em; }
   outline: none; border-color: var(--gold-500);
   box-shadow: 0 0 0 3px rgba(201, 150, 62, 0.2);
 }
+.att-static-value {
+  font: inherit; font-weight: 700; color: var(--ink); margin: 0;
+  padding: 0.75rem 0; border: none; background: none;
+}
 @media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } }
 
 .map-embed {
@@ -774,6 +778,7 @@ p { margin: 0 0 1em; }
   gap: 1rem; flex-wrap: wrap; margin-bottom: 1.2rem;
 }
 .att-sheet__head h2 { margin: 0; font-size: 1.5rem; }
+.att-sheet__actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
 
 .att-add {
   background: var(--green-050); border: 1px solid var(--green-100);
@@ -845,8 +850,9 @@ p { margin: 0 0 1em; }
 .att-status--ok { color: var(--green-700); }
 .att-status--error { color: #a4443a; }
 
-/* Teachers are mostly on phones — the table becomes a stack of cards. */
-@media (max-width: 720px) {
+/* Teachers are mostly on phones — the table becomes a stack of cards.
+   Scoped to screen so print rendering always gets a real table. */
+@media screen and (max-width: 720px) {
   .att-table, .att-table tbody, .att-table tr, .att-table th, .att-table td { display: block; }
   .att-table thead { display: none; }
   .att-table tbody tr {
@@ -866,4 +872,32 @@ p { margin: 0 0 1em; }
   .att-table tbody th { font-size: 1.1rem; }
   .att-table td:last-child { justify-content: flex-end; border-bottom: 0; }
   .att-actions .btn { width: 100%; }
+}
+
+/* ---------- Print (attendance reports) ---------- */
+.att-print-header { display: none; }
+
+@media print {
+  .no-print,
+  .topbar, .site-header, .site-footer, .skip-link,
+  .att-head, .att-controls {
+    display: none !important;
+  }
+
+  .att-print-header { display: block; margin-bottom: 1.2rem; }
+  .att-print-header h2 { margin: 0 0 0.25rem; font-size: 1.3rem; }
+  .att-print-header p { margin: 0; font-size: 0.95rem; color: #000; }
+
+  .att-sheet {
+    background: none; box-shadow: none; border: none; padding: 0; margin: 0;
+  }
+
+  .att-table { display: table; width: 100%; font-size: 0.85rem; }
+  .att-table thead { display: table-header-group; }
+  .att-table tbody { display: table-row-group; }
+  .att-table tr { display: table-row; }
+  .att-table th, .att-table td {
+    display: table-cell; border-bottom: 1px solid #ccc;
+  }
+  .att-table tbody tr { break-inside: avoid; page-break-inside: avoid; }
 }

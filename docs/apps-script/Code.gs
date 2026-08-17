@@ -26,14 +26,14 @@ var ATT_WIDTH = 11;
 
 // Students columns, in sheet order.
 var STU_ID = 0, STU_FIRST = 1, STU_LAST = 2, STU_DOB = 3,
-    STU_CLASS = 4, STU_SESSION = 5, STU_ACTIVE = 6, STU_CREATED = 7;
-var STU_WIDTH = 8;
+    STU_CLASS = 4, STU_SESSION = 5, STU_ACTIVE = 6, STU_CREATED = 7, STU_TEACHER = 8;
+var STU_WIDTH = 9;
 
 /* ---------- one-time setup ---------- */
 
 var TEACHERS_HEADER = ['teacher_id', 'name', 'active'];
 var STUDENTS_HEADER = ['student_id', 'first_name', 'last_name', 'dob',
-                       'class_type', 'session', 'active', 'created_at'];
+                       'class_type', 'session', 'active', 'created_at', 'teacher_id'];
 var ATTENDANCE_HEADER = ['date', 'class_type', 'session', 'teacher', 'student_id',
                          'first_name', 'last_name', 'present', 'lesson_passed',
                          'review_passed', 'saved_at'];
@@ -130,6 +130,7 @@ function doPost(e) {
       case 'addStudent':         return json(addStudent(req));
       case 'deactivateStudent':  return json(deactivateStudent(req));
       case 'saveAttendance':     return json(saveAttendance(req));
+      case 'attendanceForRange': return json(attendanceForRange(req));
       default:
         return json({ ok: false, error: 'Unknown action: ' + req.action });
     }
@@ -162,6 +163,7 @@ function bootstrap() {
 function roster(req) {
   var classType = requireClassType(req.class_type);
   var session = normaliseSession(classType, req.session);
+  var teacherId = requireTeacherId(req.teacher_id);
   var rows = dataRows(sheet(STUDENTS_SHEET));
   var students = [];
 
@@ -170,6 +172,7 @@ function roster(req) {
     if (!isTrue(r[STU_ACTIVE])) continue;
     if (trim(r[STU_CLASS]) !== classType) continue;
     if (trim(r[STU_SESSION]) !== session) continue;
+    if (trim(r[STU_TEACHER]) !== teacherId) continue;
 
     students.push({
       student_id: trim(r[STU_ID]),
@@ -192,6 +195,7 @@ function addStudent(req) {
 
   var classType = requireClassType(req.class_type);
   var session = normaliseSession(classType, req.session);
+  var teacherId = requireTeacherId(req.teacher_id);
 
   return withLock(function () {
     var sh = sheet(STUDENTS_SHEET);
@@ -206,6 +210,7 @@ function addStudent(req) {
     row[STU_SESSION] = session;
     row[STU_ACTIVE] = true;
     row[STU_CREATED] = nowIso();
+    row[STU_TEACHER] = teacherId;
 
     sh.appendRow(row);
     return {
@@ -301,6 +306,58 @@ function saveAttendance(req) {
   });
 }
 
+/**
+ * Read-only lookup of everything saved for one teacher/class/session across
+ * a date range, optionally narrowed to a single student. Scoped exactly like
+ * the live roster — never returns other teachers' or other classes' rows.
+ * teacher is the display NAME (see saveAttendance), not a teacher_id, because
+ * that's what the Attendance sheet stores. Dates are yyyy-MM-dd strings, so
+ * lexicographic comparison is also chronological comparison.
+ */
+function attendanceForRange(req) {
+  var classType = requireClassType(req.class_type);
+  var session = normaliseSession(classType, req.session);
+  var teacher = trim(req.teacher);
+  var startDate = trim(req.start_date);
+  var endDate = trim(req.end_date);
+  var studentId = trim(req.student_id); // '' = all students
+
+  if (!teacher) return { ok: false, error: 'Please choose a teacher.' };
+  if (!startDate || !endDate) return { ok: false, error: 'Missing start_date or end_date.' };
+  if (startDate > endDate) return { ok: false, error: 'Start date must be on or before end date.' };
+
+  var rows = dataRows(sheet(ATTENDANCE_SHEET));
+  var result = [];
+
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    var rowDate = asDateString(r[ATT_DATE]);
+    if (rowDate < startDate || rowDate > endDate) continue;
+    if (trim(r[ATT_CLASS]) !== classType) continue;
+    if (trim(r[ATT_SESSION]) !== session) continue;
+    if (trim(r[ATT_TEACHER]) !== teacher) continue;
+    if (studentId && trim(r[ATT_STUDENT]) !== studentId) continue;
+
+    result.push({
+      date: rowDate,
+      student_id: trim(r[ATT_STUDENT]),
+      first_name: trim(r[ATT_FIRST]),
+      last_name: trim(r[ATT_LAST]),
+      present: isTrue(r[ATT_PRESENT]),
+      lesson_passed: isTrue(r[ATT_LESSON]),
+      review_passed: isTrue(r[ATT_REVIEW]),
+      saved_at: trim(r[ATT_SAVED])
+    });
+  }
+
+  result.sort(function (a, b) {
+    if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+    return (a.first_name + ' ' + a.last_name).localeCompare(b.first_name + ' ' + b.last_name);
+  });
+
+  return { ok: true, rows: result, start_date: startDate, end_date: endDate };
+}
+
 /* ---------- helpers ---------- */
 
 function checkPassword(supplied) {
@@ -350,6 +407,12 @@ function nextStudentId(sh) {
 function requireClassType(value) {
   var v = trim(value);
   if (CLASS_TYPES.indexOf(v) === -1) throw new Error('Unknown class type: ' + v);
+  return v;
+}
+
+function requireTeacherId(value) {
+  var v = trim(value);
+  if (!v) throw new Error('Please choose a teacher.');
   return v;
 }
 

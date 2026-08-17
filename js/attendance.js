@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var passwordInput = document.getElementById('password');
 
   var teacherSelect = document.getElementById('teacher');
-  var dateInput = document.getElementById('date');
+  var dateDisplay = document.getElementById('date-display');
   var sessionField = document.getElementById('session-field');
   var sessionSelect = document.getElementById('session');
   var classTypeInputs = document.querySelectorAll('input[name="class_type"]');
@@ -42,9 +42,31 @@ document.addEventListener('DOMContentLoaded', function () {
   var saveStatus = document.getElementById('save-status');
   var logoutBtn = document.getElementById('logout');
 
+  var viewHistoryBtn = document.getElementById('view-history');
+  var rosterPanel = document.getElementById('roster-panel');
+  var historyPanel = document.getElementById('history-panel');
+  var historyCloseBtn = document.getElementById('history-close');
+  var historyRangeInputs = document.querySelectorAll('input[name="history_range"]');
+  var historyStartField = document.getElementById('history-start-field');
+  var historyEndField = document.getElementById('history-end-field');
+  var historyStartInput = document.getElementById('history-start');
+  var historyEndInput = document.getElementById('history-end');
+  var historyStudentSelect = document.getElementById('history-student');
+  var historyPrintBtn = document.getElementById('history-print');
+  var historySummary = document.getElementById('history-summary');
+  var printMeta = document.getElementById('print-meta');
+  var historyTable = document.getElementById('history-table');
+  var historyBody = document.getElementById('history-body');
+  var historyEmpty = document.getElementById('history-empty');
+  var historyStatus = document.getElementById('history-status');
+
+  var CLASS_TYPE_LABELS = { weekend: 'Weekend Class', evening_hifz: 'Evening Hifz', fulltime_hifz: 'Full-Time Hifz' };
+  var SESSION_LABELS = { morning: 'Morning Class', afternoon: 'Afternoon Class' };
+
   var password = '';
   var students = [];     // roster currently on screen
   var dirty = false;     // unsaved edits, guards against navigating away
+  var historyRows = null; // null = no query run yet; [] = query ran, no rows found
 
   /* ---------- transport ---------- */
 
@@ -95,13 +117,22 @@ document.addEventListener('DOMContentLoaded', function () {
     sessionField.hidden = classType() !== 'weekend';
   }
 
-  function todayIso() {
-    var now = new Date();
-    var month = String(now.getMonth() + 1);
-    var day = String(now.getDate());
+  function isoDate(date) {
+    var month = String(date.getMonth() + 1);
+    var day = String(date.getDate());
     if (month.length < 2) month = '0' + month;
     if (day.length < 2) day = '0' + day;
-    return now.getFullYear() + '-' + month + '-' + day;
+    return date.getFullYear() + '-' + month + '-' + day;
+  }
+
+  function todayIso() {
+    return isoDate(new Date());
+  }
+
+  function todayReadable() {
+    return new Date().toLocaleDateString(undefined, {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
   }
 
   /* ---------- status messages ---------- */
@@ -254,13 +285,19 @@ document.addEventListener('DOMContentLoaded', function () {
     students = [];
     renderRoster();
     hideAddForm();
+
+    if (!teacherSelect.value) {
+      status(saveStatus, 'Select your name to see your class list.', null);
+      return;
+    }
+
     status(saveStatus, 'Loading class list…', null);
 
-    var wanted = classType() + '|' + session();
+    var wanted = teacherSelect.value + '|' + classType() + '|' + session();
 
-    api('roster', { class_type: classType(), session: session() }).then(function (data) {
-      // The teacher may have switched class again while this was in flight.
-      if (classType() + '|' + session() !== wanted) return;
+    api('roster', { teacher_id: teacherSelect.value, class_type: classType(), session: session() }).then(function (data) {
+      // The teacher may have switched name or class again while this was in flight.
+      if (teacherSelect.value + '|' + classType() + '|' + session() !== wanted) return;
 
       students = data.students.map(function (s) {
         return {
@@ -274,10 +311,187 @@ document.addEventListener('DOMContentLoaded', function () {
         };
       });
       renderRoster();
+      // The student filter is scoped to this roster; a switch of teacher,
+      // class or session can invalidate the previous selection, so refresh
+      // the options and, if the history panel is open, re-run its query too.
+      populateHistoryStudents();
+      if (!historyPanel.hidden) loadHistory();
       clearSaveStatus();
     }).catch(function (err) {
       status(saveStatus, err.message, 'error');
     });
+  }
+
+  /* ---------- history (read-only view of a date range) ---------- */
+
+  function populateHistoryStudents() {
+    var previous = historyStudentSelect.value;
+    historyStudentSelect.innerHTML = '<option value="">All Students</option>';
+    students.forEach(function (s) {
+      var option = document.createElement('option');
+      option.value = s.student_id;
+      option.textContent = fullName(s);
+      historyStudentSelect.appendChild(option);
+    });
+    if (previous && students.some(function (s) { return s.student_id === previous; })) {
+      historyStudentSelect.value = previous;
+    }
+  }
+
+  function historyRange() {
+    for (var i = 0; i < historyRangeInputs.length; i++) {
+      if (historyRangeInputs[i].checked) return historyRangeInputs[i].value;
+    }
+    return 'last_week';
+  }
+
+  function computeRange(preset) {
+    if (preset === 'custom') {
+      return { start: historyStartInput.value, end: historyEndInput.value };
+    }
+    var days = preset === 'last_month' ? 30 : 7;
+    var end = new Date();
+    var start = new Date();
+    start.setDate(start.getDate() - (days - 1));
+    return { start: isoDate(start), end: isoDate(end) };
+  }
+
+  function syncRangeVisibility() {
+    var custom = historyRange() === 'custom';
+    historyStartField.hidden = !custom;
+    historyEndField.hidden = !custom;
+  }
+
+  function updatePrintHeader(range) {
+    var teacherOpt = teacherSelect.options[teacherSelect.selectedIndex];
+    var teacherName = teacherOpt ? teacherOpt.text : '';
+    var classLabel = CLASS_TYPE_LABELS[classType()] || classType();
+    var sessionLabel = session() ? (' — ' + (SESSION_LABELS[session()] || session())) : '';
+    var studentOpt = historyStudentSelect.options[historyStudentSelect.selectedIndex];
+    var studentLabel = historyStudentSelect.value ? (' — ' + studentOpt.text) : '';
+    var parts = [
+      teacherName,
+      classLabel + sessionLabel + studentLabel,
+      range.start + ' to ' + range.end,
+      'Generated ' + todayReadable()
+    ];
+    printMeta.textContent = parts.filter(Boolean).join(' · ');
+  }
+
+  function buildHistoryRow(row) {
+    var tr = document.createElement('tr');
+    if (!row.present) tr.classList.add('is-absent');
+
+    var dateCell = document.createElement('td');
+    dateCell.setAttribute('data-label', 'Date');
+    dateCell.textContent = row.date;
+    tr.appendChild(dateCell);
+
+    var nameCell = document.createElement('th');
+    nameCell.scope = 'row';
+    nameCell.setAttribute('data-label', 'Student');
+    nameCell.textContent = (row.first_name + ' ' + row.last_name).trim();
+    tr.appendChild(nameCell);
+
+    var attCell = document.createElement('td');
+    attCell.setAttribute('data-label', 'Attendance');
+    attCell.textContent = row.present ? 'Present' : 'Absent';
+    tr.appendChild(attCell);
+
+    var lessonCell = document.createElement('td');
+    lessonCell.setAttribute('data-label', 'Lesson');
+    lessonCell.textContent = row.present ? (row.lesson_passed ? 'Passed' : 'Not passed') : '—';
+    tr.appendChild(lessonCell);
+
+    var reviewCell = document.createElement('td');
+    reviewCell.setAttribute('data-label', 'Review');
+    reviewCell.textContent = row.present ? (row.review_passed ? 'Passed' : 'Not passed') : '—';
+    tr.appendChild(reviewCell);
+
+    return tr;
+  }
+
+  function renderHistorySummary(rows) {
+    if (!historyStudentSelect.value || !rows.length) {
+      status(historySummary, '', null);
+      return;
+    }
+    var presentCount = rows.filter(function (r) { return r.present; }).length;
+    status(historySummary, 'Present ' + presentCount + ' of ' + rows.length + ' recorded days.', null);
+  }
+
+  function renderHistory() {
+    historyBody.innerHTML = '';
+    var rows = historyRows || [];
+    rows.forEach(function (row) { historyBody.appendChild(buildHistoryRow(row)); });
+    historyTable.hidden = rows.length === 0;
+    // Only claim "no attendance" once a query has actually completed.
+    historyEmpty.hidden = historyRows === null || rows.length > 0;
+    renderHistorySummary(rows);
+  }
+
+  function loadHistory() {
+    historyRows = null;
+    renderHistory();
+
+    if (!teacherSelect.value) {
+      status(historyStatus, 'Select your name to see past attendance.', null);
+      return;
+    }
+
+    var range = computeRange(historyRange());
+    if (!range.start || !range.end) {
+      status(historyStatus, 'Choose a start and end date.', null);
+      return;
+    }
+    if (range.start > range.end) {
+      status(historyStatus, 'Start date must be on or before end date.', 'error');
+      return;
+    }
+
+    status(historyStatus, 'Loading…', null);
+
+    var wanted = teacherSelect.value + '|' + classType() + '|' + session() + '|' +
+      range.start + '|' + range.end + '|' + historyStudentSelect.value;
+
+    api('attendanceForRange', {
+      teacher: teacherSelect.options[teacherSelect.selectedIndex].text,
+      class_type: classType(),
+      session: session(),
+      start_date: range.start,
+      end_date: range.end,
+      student_id: historyStudentSelect.value
+    }).then(function (data) {
+      // Teacher/class/session/range/student may have changed again while this was in flight.
+      var current = teacherSelect.value + '|' + classType() + '|' + session() + '|' +
+        range.start + '|' + range.end + '|' + historyStudentSelect.value;
+      if (current !== wanted) return;
+
+      historyRows = data.rows;
+      renderHistory();
+      updatePrintHeader(range);
+      status(historyStatus, '', null);
+    }).catch(function (err) {
+      status(historyStatus, err.message, 'error');
+    });
+  }
+
+  function openHistory() {
+    rosterPanel.hidden = true;
+    historyPanel.hidden = false;
+    populateHistoryStudents();
+    if (!historyStartInput.value || !historyEndInput.value) {
+      var initial = computeRange('last_week');
+      historyStartInput.value = initial.start;
+      historyEndInput.value = initial.end;
+    }
+    syncRangeVisibility();
+    loadHistory();
+  }
+
+  function closeHistory() {
+    historyPanel.hidden = true;
+    rosterPanel.hidden = false;
   }
 
   /* ---------- actions ---------- */
@@ -299,6 +513,12 @@ document.addEventListener('DOMContentLoaded', function () {
   function addStudent(event) {
     event.preventDefault();
 
+    if (!teacherSelect.value) {
+      status(saveStatus, 'Please choose your name first.', 'error');
+      teacherSelect.focus();
+      return;
+    }
+
     if (!newFirst.value.trim() && !newLast.value.trim()) {
       status(saveStatus, 'Please enter the student’s name.', 'error');
       newFirst.focus();
@@ -313,7 +533,8 @@ document.addEventListener('DOMContentLoaded', function () {
       last_name: newLast.value.trim(),
       dob: newDob.value,
       class_type: classType(),
-      session: session()
+      session: session(),
+      teacher_id: teacherSelect.value
     }).then(function (data) {
       students.push({
         student_id: data.student.student_id,
@@ -363,11 +584,6 @@ document.addEventListener('DOMContentLoaded', function () {
       teacherSelect.focus();
       return;
     }
-    if (!dateInput.value) {
-      status(saveStatus, 'Please choose a date.', 'error');
-      dateInput.focus();
-      return;
-    }
     if (!students.length) {
       status(saveStatus, 'There are no students to save.', 'error');
       return;
@@ -376,8 +592,10 @@ document.addEventListener('DOMContentLoaded', function () {
     saveBtn.disabled = true;
     status(saveStatus, 'Saving…', null);
 
+    var today = todayIso();
+
     api('saveAttendance', {
-      date: dateInput.value,
+      date: today,
       class_type: classType(),
       session: session(),
       teacher: teacherSelect.options[teacherSelect.selectedIndex].text,
@@ -395,7 +613,7 @@ document.addEventListener('DOMContentLoaded', function () {
       dirty = false;
       var count = data.appended + data.updated;
       status(saveStatus, 'Saved ' + count + ' student' + (count === 1 ? '' : 's') + ' for ' +
-        dateInput.value + '.', 'ok');
+        today + '.', 'ok');
     }).catch(function (err) {
       status(saveStatus, err.message, 'error');
     }).finally(function () {
@@ -456,6 +674,9 @@ document.addEventListener('DOMContentLoaded', function () {
     try { sessionStorage.removeItem(PASSWORD_KEY); } catch (e) { /* ignore */ }
     renderRoster();
     clearSaveStatus();
+    historyRows = null;
+    closeHistory();
+    status(historyStatus, '', null);
     showLogin('');
   }
 
@@ -473,19 +694,37 @@ document.addEventListener('DOMContentLoaded', function () {
   addForm.addEventListener('submit', addStudent);
   saveBtn.addEventListener('click', saveAttendance);
 
+  viewHistoryBtn.addEventListener('click', openHistory);
+  historyCloseBtn.addEventListener('click', closeHistory);
+  historyRangeInputs.forEach(function (input) {
+    input.addEventListener('change', function () {
+      syncRangeVisibility();
+      loadHistory();
+    });
+  });
+  historyStartInput.addEventListener('change', loadHistory);
+  historyEndInput.addEventListener('change', loadHistory);
+  historyStudentSelect.addEventListener('change', loadHistory);
+  historyPrintBtn.addEventListener('click', function () { window.print(); });
+
   classTypeInputs.forEach(function (input) {
     input.addEventListener('change', function () {
       syncSessionVisibility();
       loadRoster();
+      if (!historyPanel.hidden) loadHistory();
     });
   });
-  sessionSelect.addEventListener('change', loadRoster);
+  sessionSelect.addEventListener('change', function () {
+    loadRoster();
+    if (!historyPanel.hidden) loadHistory();
+  });
 
-  // Teacher and date are context, not attendance edits — picking a name must
-  // not make the page think there is unsaved work. They only clear a stale
-  // "Saved…" message so it can't be read as applying to the new selection.
-  teacherSelect.addEventListener('change', clearSaveStatus);
-  dateInput.addEventListener('change', clearSaveStatus);
+  // The roster is scoped to a teacher's own students, so switching teacher
+  // reloads it just like switching class or session does.
+  teacherSelect.addEventListener('change', function () {
+    loadRoster();
+    if (!historyPanel.hidden) loadHistory();
+  });
 
   window.addEventListener('beforeunload', function (event) {
     if (!dirty) return;
@@ -495,7 +734,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ---------- start ---------- */
 
-  dateInput.value = todayIso();
+  dateDisplay.textContent = todayReadable();
   syncSessionVisibility();
   renderRoster();
 

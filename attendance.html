@@ -117,8 +117,8 @@
             </div>
 
             <div class="form-field">
-              <label for="date">Date *</label>
-              <input id="date" type="date" required>
+              <span class="att-legend">Today's Date</span>
+              <p class="att-static-value" id="date-display"></p>
             </div>
 
             <div class="form-field form-field--full">
@@ -150,10 +150,13 @@
           </div>
         </div>
 
-        <div class="att-sheet mt-2">
+        <div class="att-sheet mt-2" id="roster-panel">
           <div class="att-sheet__head">
             <h2>Students</h2>
-            <button class="btn btn--outline" type="button" id="add-student">Add Student</button>
+            <div class="att-sheet__actions">
+              <button class="btn btn--outline" type="button" id="view-history">View Past Attendance</button>
+              <button class="btn btn--outline" type="button" id="add-student">Add Student</button>
+            </div>
           </div>
 
           <!-- Revealed by Add Student. -->
@@ -179,7 +182,8 @@
           </form>
 
           <p class="att-empty" id="roster-empty" hidden>No students on this class list yet. Use
-            <strong>Add Student</strong> to build the register.</p>
+            <strong>Add Student</strong> to build the register.
+          </p>
 
           <div class="att-table-wrap">
             <table class="att-table" id="roster-table" hidden>
@@ -201,6 +205,79 @@
             <button class="btn btn--green btn--lg" type="button" id="save">Save Attendance</button>
             <p class="att-status" id="save-status" role="status" aria-live="polite" hidden></p>
           </div>
+        </div>
+
+        <!-- Read-only view of a date range's saved attendance; printable. -->
+        <div class="att-sheet mt-2" id="history-panel" hidden>
+          <div class="att-sheet__head">
+            <h2>Past Attendance</h2>
+            <div class="att-sheet__actions no-print">
+              <button class="btn btn--outline" type="button" id="history-print">Print / Save as PDF</button>
+              <button class="btn btn--outline" type="button" id="history-close">Back to Class List</button>
+            </div>
+          </div>
+
+          <div class="form-grid no-print">
+            <div class="form-field form-field--full">
+              <span class="att-legend" id="history-range-label">Date range *</span>
+              <div class="att-radios" role="radiogroup" aria-labelledby="history-range-label">
+                <label class="att-radio">
+                  <input type="radio" name="history_range" value="last_week" checked>
+                  <span>Last Week</span>
+                </label>
+                <label class="att-radio">
+                  <input type="radio" name="history_range" value="last_month">
+                  <span>Last Month</span>
+                </label>
+                <label class="att-radio">
+                  <input type="radio" name="history_range" value="custom">
+                  <span>Custom</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-field" id="history-start-field" hidden>
+              <label for="history-start">Start date *</label>
+              <input id="history-start" type="date">
+            </div>
+            <div class="form-field" id="history-end-field" hidden>
+              <label for="history-end">End date *</label>
+              <input id="history-end" type="date">
+            </div>
+
+            <div class="form-field form-field--full">
+              <label for="history-student">Student</label>
+              <select id="history-student">
+                <option value="">All Students</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="att-print-header">
+            <h2>Umul Qura Learning Centre — Attendance Report</h2>
+            <p id="print-meta"></p>
+          </div>
+
+          <p class="att-status" id="history-summary" role="status" hidden></p>
+
+          <p class="att-empty" id="history-empty" hidden>No attendance was saved for this range.</p>
+
+          <div class="att-table-wrap">
+            <table class="att-table" id="history-table" hidden>
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Student</th>
+                  <th scope="col">Attendance</th>
+                  <th scope="col">Lesson</th>
+                  <th scope="col">Review</th>
+                </tr>
+              </thead>
+              <tbody id="history-body"></tbody>
+            </table>
+          </div>
+
+          <p class="att-status no-print" id="history-status" role="status" aria-live="polite" hidden></p>
         </div>
       </div>
     </section>
