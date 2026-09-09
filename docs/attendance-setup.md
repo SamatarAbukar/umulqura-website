@@ -46,12 +46,17 @@ Header only — teachers fill this in from the page using **Add Student**.
 
 ### Tab: `Attendance`
 
-| date | class_type | session | teacher | student_id | first_name | last_name | present | lesson_passed | review_passed | saved_at |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| date | class_type | session | teacher | student_id | first_name | last_name | present | lesson_passed | review_passed | saved_at | comment |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 Header only. One row is written per student per class day. Names are copied into each row so old
 records still read correctly if a student is later renamed. `lesson_passed` and `review_passed`
 are left blank for absent students.
+
+`comment` is an optional free-text note the teacher types on the register, capped at 100 characters
+(the script truncates anything longer). Unlike the two pass columns it is kept for absent students
+too, since that's often exactly where the reason belongs. It sits after `saved_at` rather than next
+to `review_passed` because it was added later — see the migration note below.
 
 `setupSheets()` formats the date columns as plain text. That stops Sheets rewriting `2026-08-09`
 into a locale date — which would break the "same day" matching that lets a teacher re-save and
@@ -127,6 +132,14 @@ the same, so nothing on the website needs changing.
 
 ---
 
+## Migrating an existing sheet to add `comment`
+
+Run `setupSheets()` again and it writes the `comment` header into column L. Rows saved before this
+column existed keep an empty comment and need no back-fill — they simply show `—` in the Past
+Attendance view. Nothing else on the sheet moves, which is why the column was appended at the end
+instead of being slotted in beside `review_passed`. Redeploy the updated `Code.gs` (see above)
+before the new `attendance.js` goes live, or the comment is silently dropped on save.
+
 ## Migrating an existing sheet to add `teacher_id`
 
 If your `Students` tab was created before `teacher_id` existed, running `setupSheets()` again adds
@@ -164,7 +177,7 @@ curl -sL 'https://script.google.com/macros/s/AKfy…/exec' \
 `student_id` is optional — omit it (or send `""`) to get every student in that class/session.
 
 ```json
-{"ok":true,"rows":[{"date":"2026-08-09","student_id":"S-001","first_name":"...","last_name":"...","present":true,"lesson_passed":true,"review_passed":false,"saved_at":"..."}],"start_date":"2026-08-03","end_date":"2026-08-09"}
+{"ok":true,"rows":[{"date":"2026-08-09","student_id":"S-001","first_name":"...","last_name":"...","present":true,"lesson_passed":true,"review_passed":false,"saved_at":"...","comment":"Needs to redo page 14"}],"start_date":"2026-08-03","end_date":"2026-08-09"}
 ```
 
 Note `teacher` must be the teacher's **display name** (as it appears on the `Teachers` tab), not
@@ -189,7 +202,8 @@ search results.
 1. Enter the shared password.
 2. Choose your name, the class type, the session (weekend only) and the date. The class list only
    shows students who belong to *your* name and that class/session.
-3. Mark each student Present or Absent, and tick whether they passed their lesson and review.
+3. Mark each student Present or Absent, tick whether they passed their lesson and review, and
+   optionally type a short comment.
 4. **Add Student** to put a new student on your class roster permanently.
 5. **Save Attendance**.
 6. Use **View Past Attendance** to check what was saved for your name, class type and session.

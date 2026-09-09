@@ -829,6 +829,18 @@ p { margin: 0 0 1em; }
 .att-pass input:disabled { opacity: 0.4; cursor: not-allowed; }
 .att-pass input:disabled + span { opacity: 0.45; cursor: not-allowed; }
 
+/* Comment — the only text input inside a table cell. */
+.att-comment {
+  font: inherit; font-size: 0.9rem; color: var(--ink);
+  width: 100%; min-width: 11rem; padding: 0.5rem 0.7rem;
+  border: 1.5px solid var(--green-100); border-radius: 10px;
+  background: var(--cream);
+}
+.att-comment:focus {
+  outline: none; border-color: var(--gold-500);
+  box-shadow: 0 0 0 3px rgba(201, 150, 62, 0.2);
+}
+
 .att-remove {
   font: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer;
   padding: 0.4rem 0.8rem; border-radius: 999px;
@@ -871,6 +883,7 @@ p { margin: 0 0 1em; }
   }
   .att-table tbody th { font-size: 1.1rem; }
   .att-table td:last-child { justify-content: flex-end; border-bottom: 0; }
+  .att-comment { flex: 1; min-width: 0; }
   .att-actions .btn { width: 100%; }
 }
 
@@ -900,4 +913,6 @@ p { margin: 0 0 1em; }
     display: table-cell; border-bottom: 1px solid #ccc;
   }
   .att-table tbody tr { break-inside: avoid; page-break-inside: avoid; }
+
+  .att-comment { border: 0; background: none; padding: 0; min-width: 0; }
 }

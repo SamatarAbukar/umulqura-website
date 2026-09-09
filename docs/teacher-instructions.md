@@ -28,7 +28,9 @@ Give this to teaching staff. Send the password separately, never in the same mes
    earlier class.
 5. For each student, tap **Present** or **Absent**, then tick **Lesson** and **Review** if they
    passed. Absent students' ticks grey out on their own — that's normal.
-6. Tap **Save Attendance** and wait for **"Saved N students for …"**.
+6. Add a **Comment** if you want to — it's optional, up to 100 characters, and it saves for absent
+   students too, so it's the place to note things like "away sick" or "needs to redo page 14".
+7. Tap **Save Attendance** and wait for **"Saved N students for …"**.
 
 If you don't see that confirmation, it hasn't saved.
 

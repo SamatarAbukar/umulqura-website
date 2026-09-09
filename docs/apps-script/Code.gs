@@ -18,11 +18,14 @@ var ATTENDANCE_SHEET = 'Attendance';
 var CLASS_TYPES = ['weekend', 'evening_hifz', 'fulltime_hifz'];
 var SESSIONS = ['morning', 'afternoon'];
 
+// Longest attendance comment a teacher can save.
+var COMMENT_MAX = 100;
+
 // Attendance columns, in sheet order.
 var ATT_DATE = 0, ATT_CLASS = 1, ATT_SESSION = 2, ATT_TEACHER = 3,
     ATT_STUDENT = 4, ATT_FIRST = 5, ATT_LAST = 6, ATT_PRESENT = 7,
-    ATT_LESSON = 8, ATT_REVIEW = 9, ATT_SAVED = 10;
-var ATT_WIDTH = 11;
+    ATT_LESSON = 8, ATT_REVIEW = 9, ATT_SAVED = 10, ATT_COMMENT = 11;
+var ATT_WIDTH = 12;
 
 // Students columns, in sheet order.
 var STU_ID = 0, STU_FIRST = 1, STU_LAST = 2, STU_DOB = 3,
@@ -36,7 +39,7 @@ var STUDENTS_HEADER = ['student_id', 'first_name', 'last_name', 'dob',
                        'class_type', 'session', 'active', 'created_at', 'teacher_id'];
 var ATTENDANCE_HEADER = ['date', 'class_type', 'session', 'teacher', 'student_id',
                          'first_name', 'last_name', 'present', 'lesson_passed',
-                         'review_passed', 'saved_at'];
+                         'review_passed', 'saved_at', 'comment'];
 
 var SEED_TEACHERS = [
   ['T-001', 'Sheikh Nuh Aweis', true],
@@ -291,6 +294,9 @@ function saveAttendance(req) {
       row[ATT_LESSON] = present ? !!s.lesson_passed : '';
       row[ATT_REVIEW] = present ? !!s.review_passed : '';
       row[ATT_SAVED] = savedAt;
+      // A comment is kept either way — an absence is exactly when the reason
+      // is worth writing down.
+      row[ATT_COMMENT] = capComment(s.comment);
 
       var at = rowByStudent[trim(s.student_id)];
       if (at) {
@@ -346,7 +352,8 @@ function attendanceForRange(req) {
       present: isTrue(r[ATT_PRESENT]),
       lesson_passed: isTrue(r[ATT_LESSON]),
       review_passed: isTrue(r[ATT_REVIEW]),
-      saved_at: trim(r[ATT_SAVED])
+      saved_at: trim(r[ATT_SAVED]),
+      comment: trim(r[ATT_COMMENT])
     });
   }
 
@@ -426,6 +433,12 @@ function normaliseSession(classType, value) {
 
 function trim(v) {
   return v === null || v === undefined ? '' : String(v).trim();
+}
+
+/** The input carries a maxlength too, but that is trivially bypassed. */
+function capComment(v) {
+  var s = trim(v);
+  return s.length > COMMENT_MAX ? s.substring(0, COMMENT_MAX) : s;
 }
 
 function isTrue(v) {

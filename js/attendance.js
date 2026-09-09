@@ -62,6 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var CLASS_TYPE_LABELS = { weekend: 'Weekend Class', evening_hifz: 'Evening Hifz', fulltime_hifz: 'Full-Time Hifz' };
   var SESSION_LABELS = { morning: 'Morning Class', afternoon: 'Afternoon Class' };
+  var COMMENT_MAX_LENGTH = 100;   // mirrored by COMMENT_MAX in the Apps Script
 
   var password = '';
   var students = [];     // roster currently on screen
@@ -220,7 +221,31 @@ document.addEventListener('DOMContentLoaded', function () {
     return cell;
   }
 
-  /** An absent student has no lesson or review to pass. */
+  /** An optional short note about how the student did today. */
+  function commentCell(student) {
+    var cell = document.createElement('td');
+    cell.setAttribute('data-label', 'Comment');
+
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'att-comment';
+    input.maxLength = COMMENT_MAX_LENGTH;
+    input.value = student.comment || '';
+    input.placeholder = 'Optional note';
+    input.setAttribute('aria-label', 'Comment — ' + fullName(student));
+    input.addEventListener('input', function () {
+      student.comment = input.value;
+      markDirty();
+    });
+
+    cell.appendChild(input);
+    return cell;
+  }
+
+  /**
+   * An absent student has no lesson or review to pass. The comment box stays
+   * enabled on purpose — a reason for the absence is worth recording.
+   */
   function syncRowState(row, student) {
     if (!row) return;
     row.classList.toggle('is-absent', !student.present);
@@ -246,6 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
     row.appendChild(attendanceCell(student, index));
     row.appendChild(passCell(student, 'lesson_passed', 'Lesson'));
     row.appendChild(passCell(student, 'review_passed', 'Review'));
+    row.appendChild(commentCell(student));
 
     var removeCell = document.createElement('td');
     removeCell.setAttribute('data-label', '');
@@ -307,7 +333,8 @@ document.addEventListener('DOMContentLoaded', function () {
           dob: s.dob,
           present: true,          // start everyone present; absences are the exception
           lesson_passed: false,
-          review_passed: false
+          review_passed: false,
+          comment: ''
         };
       });
       renderRoster();
@@ -407,6 +434,11 @@ document.addEventListener('DOMContentLoaded', function () {
     reviewCell.setAttribute('data-label', 'Review');
     reviewCell.textContent = row.present ? (row.review_passed ? 'Passed' : 'Not passed') : '—';
     tr.appendChild(reviewCell);
+
+    var commentCellEl = document.createElement('td');
+    commentCellEl.setAttribute('data-label', 'Comment');
+    commentCellEl.textContent = row.comment || '—';
+    tr.appendChild(commentCellEl);
 
     return tr;
   }
@@ -543,7 +575,8 @@ document.addEventListener('DOMContentLoaded', function () {
         dob: data.student.dob,
         present: true,
         lesson_passed: false,
-        review_passed: false
+        review_passed: false,
+        comment: ''
       });
       renderRoster();
       hideAddForm();
@@ -606,7 +639,8 @@ document.addEventListener('DOMContentLoaded', function () {
           last_name: s.last_name,
           present: s.present,
           lesson_passed: s.lesson_passed,
-          review_passed: s.review_passed
+          review_passed: s.review_passed,
+          comment: s.comment || ''
         };
       })
     }).then(function (data) {
