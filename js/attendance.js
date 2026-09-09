@@ -40,6 +40,8 @@ document.addEventListener('DOMContentLoaded', function () {
   var emptyMsg = document.getElementById('roster-empty');
   var saveBtn = document.getElementById('save');
   var saveStatus = document.getElementById('save-status');
+  var summaryLead = document.getElementById('summary-lead');
+  var summaryGroups = document.getElementById('summary-groups');
   var logoutBtn = document.getElementById('logout');
 
   var viewHistoryBtn = document.getElementById('view-history');
@@ -65,7 +67,10 @@ document.addEventListener('DOMContentLoaded', function () {
   var COMMENT_MAX_LENGTH = 100;   // mirrored by COMMENT_MAX in the Apps Script
 
   var password = '';
-  var students = [];     // roster currently on screen
+  // Roster currently on screen. student.present is true, false, or null for
+  // "not marked yet" — nothing is assumed on a teacher's behalf, and only
+  // marked students are ever sent to the sheet.
+  var students = [];
   var dirty = false;     // unsaved edits, guards against navigating away
   var historyRows = null; // null = no query run yet; [] = query ran, no rows found
 
@@ -176,10 +181,12 @@ document.addEventListener('DOMContentLoaded', function () {
       input.type = 'radio';
       input.name = 'attendance-' + index;
       input.value = option[0];
-      input.checked = option[0] === 'present' ? student.present : !student.present;
+      // Both stay unchecked while student.present is null.
+      input.checked = student.present === (option[0] === 'present');
       input.addEventListener('change', function () {
         student.present = input.value === 'present';
         syncRowState(cell.parentNode, student);
+        renderSummary();
         markDirty();
       });
 
@@ -209,6 +216,7 @@ document.addEventListener('DOMContentLoaded', function () {
     input.setAttribute('aria-label', heading + ' passed — ' + fullName(student));
     input.addEventListener('change', function () {
       student[field] = input.checked;
+      renderSummary();
       markDirty();
     });
 
@@ -235,6 +243,7 @@ document.addEventListener('DOMContentLoaded', function () {
     input.setAttribute('aria-label', 'Comment — ' + fullName(student));
     input.addEventListener('input', function () {
       student.comment = input.value;
+      renderSummary();
       markDirty();
     });
 
@@ -243,14 +252,16 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /**
-   * An absent student has no lesson or review to pass. The comment box stays
-   * enabled on purpose — a reason for the absence is worth recording.
+   * An absent — or not yet marked — student has no lesson or review to pass.
+   * The comment box stays enabled on purpose: a reason for the absence is
+   * worth recording.
    */
   function syncRowState(row, student) {
     if (!row) return;
-    row.classList.toggle('is-absent', !student.present);
+    row.classList.toggle('is-absent', student.present === false);
+    row.classList.toggle('is-unmarked', student.present === null);
     row.querySelectorAll('.att-pass input').forEach(function (box) {
-      box.disabled = !student.present;
+      box.disabled = student.present !== true;
     });
   }
 
@@ -297,7 +308,80 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     table.hidden = students.length === 0;
     emptyMsg.hidden = students.length > 0;
-    saveBtn.disabled = students.length === 0;
+    renderSummary();
+  }
+
+  /* ---------- save preview ---------- */
+
+  /** The students Save Attendance will actually write a row for. */
+  function markedStudents() {
+    return students.filter(function (student) { return student.present !== null; });
+  }
+
+  /** "Ahmed Ali (lesson, review, note)" — the extras that will be saved too. */
+  function summaryName(student) {
+    var extras = [];
+    if (student.present) {
+      if (student.lesson_passed) extras.push('lesson');
+      if (student.review_passed) extras.push('review');
+    }
+    if ((student.comment || '').trim()) extras.push('note');
+    return fullName(student) + (extras.length ? ' (' + extras.join(', ') + ')' : '');
+  }
+
+  function summaryGroup(label, names, modifier) {
+    var group = document.createElement('div');
+    group.className = 'att-summary__group att-summary__group--' + modifier;
+
+    var heading = document.createElement('p');
+    heading.className = 'att-summary__label';
+    heading.textContent = label + ' (' + names.length + ')';
+    group.appendChild(heading);
+
+    var list = document.createElement('p');
+    list.className = 'att-summary__names';
+    list.textContent = names.join(' · ');
+    group.appendChild(list);
+
+    return group;
+  }
+
+  /**
+   * Spells out what Save Attendance is about to write, so nothing reaches the
+   * sheet that the teacher didn't type in. Also owns the Save button's
+   * enabled state — there is nothing to save until someone is marked.
+   */
+  function renderSummary() {
+    var present = [], absent = [], unmarked = [];
+
+    students.forEach(function (student) {
+      if (student.present === true) present.push(summaryName(student));
+      else if (student.present === false) absent.push(summaryName(student));
+      else unmarked.push(fullName(student));
+    });
+
+    var marked = present.length + absent.length;
+
+    summaryGroups.innerHTML = '';
+    if (present.length) summaryGroups.appendChild(summaryGroup('Present', present, 'present'));
+    if (absent.length) summaryGroups.appendChild(summaryGroup('Absent', absent, 'absent'));
+    if (unmarked.length) {
+      summaryGroups.appendChild(summaryGroup('Not marked — will not be saved', unmarked, 'unmarked'));
+    }
+
+    if (!students.length) {
+      summaryLead.textContent = '';
+    } else if (!marked) {
+      summaryLead.textContent = 'Nothing will be saved yet. Mark each student Present or Absent below.';
+    } else {
+      summaryLead.textContent = 'Saving ' + marked + ' of ' + students.length +
+        ' student' + (students.length === 1 ? '' : 's') + ' for ' + todayReadable() + '.';
+    }
+    summaryLead.hidden = !summaryLead.textContent;
+
+    // The panel itself always stays put: it holds save-status, which reports
+    // loading and add/remove errors that happen while the roster is empty.
+    saveBtn.disabled = marked === 0;
   }
 
   /* ---------- data loading ---------- */
@@ -331,7 +415,7 @@ document.addEventListener('DOMContentLoaded', function () {
           first_name: s.first_name,
           last_name: s.last_name,
           dob: s.dob,
-          present: true,          // start everyone present; absences are the exception
+          present: null,          // unmarked until the teacher says otherwise
           lesson_passed: false,
           review_passed: false,
           comment: ''
@@ -573,7 +657,7 @@ document.addEventListener('DOMContentLoaded', function () {
         first_name: data.student.first_name,
         last_name: data.student.last_name,
         dob: data.student.dob,
-        present: true,
+        present: null,
         lesson_passed: false,
         review_passed: false,
         comment: ''
@@ -622,6 +706,13 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
+    // Only marked students are written; an untouched roster saves nothing.
+    var marked = markedStudents();
+    if (!marked.length) {
+      status(saveStatus, 'Mark each student Present or Absent before saving.', 'error');
+      return;
+    }
+
     saveBtn.disabled = true;
     status(saveStatus, 'Saving…', null);
 
@@ -632,7 +723,7 @@ document.addEventListener('DOMContentLoaded', function () {
       class_type: classType(),
       session: session(),
       teacher: teacherSelect.options[teacherSelect.selectedIndex].text,
-      rows: students.map(function (s) {
+      rows: marked.map(function (s) {
         return {
           student_id: s.student_id,
           first_name: s.first_name,
@@ -651,9 +742,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }).catch(function (err) {
       status(saveStatus, err.message, 'error');
     }).finally(function () {
-      // Left enabled on purpose: nothing is cleared, so a teacher can correct
-      // a mistake and save again over the same rows.
-      saveBtn.disabled = false;
+      // Re-enabled on purpose: nothing is cleared, so a teacher can correct a
+      // mistake, or mark the rest of the class, and save again.
+      saveBtn.disabled = markedStudents().length === 0;
     });
   }
 

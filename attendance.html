@@ -185,6 +185,18 @@
             <strong>Add Student</strong> to build the register.
           </p>
 
+          <!-- Mirrors exactly what Save Attendance will write, and holds the
+               button that writes it. -->
+          <div class="att-summary" id="save-summary">
+            <h3>Ready to Save</h3>
+            <p class="att-summary__lead" id="summary-lead" role="status" aria-live="polite" hidden></p>
+            <div class="att-summary__groups" id="summary-groups"></div>
+            <div class="att-actions">
+              <button class="btn btn--green btn--lg" type="button" id="save">Save Attendance</button>
+              <p class="att-status" id="save-status" role="status" aria-live="polite" hidden></p>
+            </div>
+          </div>
+
           <div class="att-table-wrap">
             <table class="att-table" id="roster-table" hidden>
               <thead>
@@ -200,11 +212,6 @@
               </thead>
               <tbody id="roster-body"></tbody>
             </table>
-          </div>
-
-          <div class="att-actions">
-            <button class="btn btn--green btn--lg" type="button" id="save">Save Attendance</button>
-            <p class="att-status" id="save-status" role="status" aria-live="polite" hidden></p>
           </div>
         </div>
 

@@ -27,10 +27,13 @@ Give this to teaching staff. Send the password separately, never in the same mes
 4. Check the **date**. It fills in today automatically — change it only if you're recording an
    earlier class.
 5. For each student, tap **Present** or **Absent**, then tick **Lesson** and **Review** if they
-   passed. Absent students' ticks grey out on their own — that's normal.
+   passed. Nobody starts marked — a student you don't tap is simply not saved. Their row keeps a
+   gold edge until you mark them, and the ticks stay greyed out until you tap **Present**.
 6. Add a **Comment** if you want to — it's optional, up to 100 characters, and it saves for absent
    students too, so it's the place to note things like "away sick" or "needs to redo page 14".
-7. Tap **Save Attendance** and wait for **"Saved N students for …"**.
+7. Check the **Ready to Save** box above the list. It shows exactly what will be written: who is
+   going down as present, who as absent, and who you haven't marked yet. Nothing else is saved.
+8. Tap **Save Attendance** in that box and wait for **"Saved N students for …"**.
 
 If you don't see that confirmation, it hasn't saved.
 
@@ -56,6 +59,7 @@ duplicate. Correcting a mistake later in the day is always safe.
 | "Incorrect password." | Check for capital letters or a trailing space. Ask the office. |
 | Nothing loads, or an error message | Check your internet connection and try again. The page needs to be online. |
 | The wrong students are listed | Check the class type, and Morning vs Afternoon. |
+| **Save Attendance** is greyed out | You haven't marked anyone yet. Tap Present or Absent for at least one student. |
 | "You have unsaved attendance…" | You have ticks that aren't saved. Cancel and press Save first, or continue to discard them. |
 
 ## Please

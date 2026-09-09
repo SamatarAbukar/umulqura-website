@@ -802,6 +802,8 @@ p { margin: 0 0 1em; }
 .att-table tbody th { font-weight: 800; color: var(--green-900); }
 .att-table tbody tr:last-child th, .att-table tbody tr:last-child td { border-bottom: 0; }
 .att-table tbody tr.is-absent th, .att-table tbody tr.is-absent td { color: var(--ink-soft); }
+/* Not marked yet — a gold edge so an unfinished row is obvious at a glance. */
+.att-table tbody tr.is-unmarked th:first-child { box-shadow: inset 3px 0 0 var(--gold-500); }
 
 /* Present / Absent */
 .att-segmented {
@@ -850,12 +852,39 @@ p { margin: 0 0 1em; }
 .att-remove:hover { background: #fdeeec; border-color: #a4443a; }
 .att-remove:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* Save panel — the preview of what will be written plus the button that
+   writes it, above the register so both are read before any marking. */
+.att-summary {
+  margin-bottom: 1.5rem; padding: 1.1rem 1.3rem;
+  background: var(--green-050); border: 1px solid var(--green-100);
+  border-radius: var(--radius);
+}
+.att-summary h3 {
+  margin: 0 0 0.35rem; font-size: 0.78rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--gold-600);
+}
+.att-summary__lead { margin: 0; font-weight: 700; color: var(--green-900); }
+.att-summary__groups {
+  display: grid; gap: 0.9rem; margin-top: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+.att-summary__groups:empty { display: none; }
+.att-summary__group { padding-left: 0.7rem; border-left: 3px solid var(--green-100); }
+.att-summary__group--present { border-left-color: var(--green-700); }
+.att-summary__group--absent { border-left-color: #a4443a; }
+.att-summary__group--unmarked { border-left-color: var(--gold-500); }
+.att-summary__label {
+  margin: 0 0 0.2rem; font-size: 0.8rem; font-weight: 800;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft);
+}
+.att-summary__names { margin: 0; font-size: 0.95rem; color: var(--ink); }
+
 .att-actions {
   display: flex; align-items: center; gap: 1rem;
-  flex-wrap: wrap; margin-top: 1.8rem;
+  flex-wrap: wrap; margin-top: 1.1rem;
 }
-/* Nothing else on the site disables a .btn; Save is disabled on an empty
-   class list and while a request is in flight. */
+/* Nothing else on the site disables a .btn; Save is disabled until at least
+   one student is marked, and while a request is in flight. */
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn:disabled:hover { transform: none; }
 .att-status { margin: 0; font-weight: 700; font-size: 0.95rem; color: var(--ink-soft); }
@@ -872,6 +901,8 @@ p { margin: 0 0 1em; }
     padding: 0.4rem 0.9rem; margin-bottom: 1rem;
   }
   .att-table tbody tr.is-absent { background: var(--green-050); }
+  .att-table tbody tr.is-unmarked { border-color: var(--gold-500); }
+  .att-table tbody tr.is-unmarked th:first-child { box-shadow: none; }
   .att-table th, .att-table td {
     display: flex; align-items: center; justify-content: space-between;
     gap: 1rem; padding: 0.6rem 0; border-bottom: 1px solid var(--green-100);
