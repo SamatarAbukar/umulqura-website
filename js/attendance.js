@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var historyEmpty = document.getElementById('history-empty');
   var historyStatus = document.getElementById('history-status');
 
-  var CLASS_TYPE_LABELS = { weekend: 'Weekend Class', evening_hifz: 'Evening Hifz', fulltime_hifz: 'Full-Time Hifz' };
+  var CLASS_TYPE_LABELS = { weekend: 'Weekend Class', evening_hifz: 'Evening Hifz', fulltime_hifz: 'Full-Time Hifz', tutoring: 'Tutoring' };
   var SESSION_LABELS = { morning: 'Morning Class', afternoon: 'Afternoon Class' };
   var COMMENT_MAX_LENGTH = 100;   // mirrored by COMMENT_MAX in the Apps Script
 

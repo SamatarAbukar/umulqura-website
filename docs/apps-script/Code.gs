@@ -15,7 +15,7 @@ var TEACHERS_SHEET = 'Teachers';
 var STUDENTS_SHEET = 'Students';
 var ATTENDANCE_SHEET = 'Attendance';
 
-var CLASS_TYPES = ['weekend', 'evening_hifz', 'fulltime_hifz'];
+var CLASS_TYPES = ['weekend', 'evening_hifz', 'fulltime_hifz', 'tutoring'];
 var SESSIONS = ['morning', 'afternoon'];
 
 // Longest attendance comment a teacher can save.
@@ -423,7 +423,7 @@ function requireTeacherId(value) {
   return v;
 }
 
-/** Only the weekend class is split into sessions; the Hifz classes store ''. */
+/** Only the weekend class is split into sessions; Hifz and Tutoring store ''. */
 function normaliseSession(classType, value) {
   if (classType !== 'weekend') return '';
   var v = trim(value);

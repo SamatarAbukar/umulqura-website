@@ -35,8 +35,9 @@ without losing their history.
 
 Header only — teachers fill this in from the page using **Add Student**.
 
-- `class_type` is one of `weekend`, `evening_hifz`, `fulltime_hifz`
-- `session` is `morning` or `afternoon` for the weekend class, and **blank** for the two Hifz classes
+- `class_type` is one of `weekend`, `evening_hifz`, `fulltime_hifz`, `tutoring`
+- `session` is `morning` or `afternoon` for the weekend class, and **blank** for the Hifz and
+  Tutoring classes
 - `active` is the soft-delete flag. **Delete Student** on the page sets it to `FALSE`; it never
   removes the row, and it never touches past attendance.
 - `teacher_id` ties the student to whoever picked them up on **Add Student** (matches the
@@ -139,6 +140,13 @@ column existed keep an empty comment and need no back-fill — they simply show 
 Attendance view. Nothing else on the sheet moves, which is why the column was appended at the end
 instead of being slotted in beside `review_passed`. Redeploy the updated `Code.gs` (see above)
 before the new `attendance.js` goes live, or the comment is silently dropped on save.
+
+## Adding the `tutoring` class type
+
+No sheet changes are needed — `tutoring` is just a new `class_type` value, stored with a blank
+`session`. The script whitelists class types, though, so redeploy the updated `Code.gs` (see above)
+**before** the new `attendance.html` goes live. Otherwise choosing Tutoring on the page fails with
+"Unknown class type: tutoring".
 
 ## Migrating an existing sheet to add `teacher_id`
 
