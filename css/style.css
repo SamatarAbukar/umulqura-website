@@ -301,6 +301,14 @@ p { margin: 0 0 1em; }
 @media (max-width: 900px) { .info-strip .container { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 520px) { .info-strip .container { grid-template-columns: 1fr; } }
 
+/* ---------- Jumu'ah bar (homepage) ---------- */
+.jumuah-bar { background: var(--green-900); color: var(--white); text-align: center; padding: 0.85rem 1rem; }
+.jumuah-bar p { margin: 0; font-size: 1.3125rem; }
+.jumuah-bar strong {
+  color: var(--gold-300); font-size: 1rem; letter-spacing: 0.14em;
+  text-transform: uppercase; margin-right: 0.6rem;
+}
+
 /* ---------- Prayer times widget (homepage) ---------- */
 #prayer-times { padding-block: 0; }
 .prayer-widget { width: 100%; text-align: center; }
